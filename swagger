@@ -1,0 +1,357 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "Smart Home REST API",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/users": {
+      "post": {
+        "summary": "Create account",
+        "responses": {
+          "201": {
+            "description": "User created"
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "summary": "Login to account",
+        "responses": {
+          "200": {
+            "description": "Login successful"
+          }
+        }
+      }
+    },
+    "/houses": {
+      "post": {
+        "summary": "Add a house",
+        "responses": {
+          "201": {
+            "description": "House added"
+          }
+        }
+      }
+    },
+    "/houses/{houseId}": {
+      "delete": {
+        "summary": "Remove a house",
+        "parameters": [
+          {
+            "name": "houseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "House removed"
+          }
+        }
+      }
+    },
+    "/houses/{houseId}/rooms": {
+      "post": {
+        "summary": "Add a room to a house",
+        "parameters": [
+          {
+            "name": "houseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Room added"
+          }
+        }
+      }
+    },
+    "/rooms/{roomId}": {
+      "delete": {
+        "summary": "Remove a room",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Room removed"
+          }
+        }
+      }
+    },
+    "/rooms/{roomId}/devices": {
+      "post": {
+        "summary": "Add smart device to room",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Device added"
+          }
+        }
+      }
+    },
+    "/devices/{deviceId}": {
+      "delete": {
+        "summary": "Remove smart device",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Device removed"
+          }
+        }
+      },
+      "put": {
+        "summary": "Categorize a smart device",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Device updated"
+          }
+        }
+      }
+    },
+    "/devices/{deviceId}/status": {
+      "get": {
+        "summary": "Communicate with smart device",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Status retrieved"
+          }
+        }
+      }
+    },
+    "/devices/{deviceId}/action": {
+      "post": {
+        "summary": "Control smart device manually",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Action performed"
+          }
+        }
+      }
+    },
+    "/rooms/{roomId}/temperature": {
+      "put": {
+        "summary": "Set room temperature",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Temperature set"
+          }
+        }
+      }
+    },
+    "/rooms/{roomId}/lighting": {
+      "put": {
+        "summary": "Control lighting of a room",
+        "parameters": [
+          {
+            "name": "roomId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lighting set"
+          }
+        }
+      }
+    },
+    "/security/{deviceId}/state": {
+      "put": {
+        "summary": "Control the security system",
+        "parameters": [
+          {
+            "name": "deviceId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Security system updated"
+          }
+        }
+      }
+    },
+    "/automations": {
+      "post": {
+        "summary": "Automate smart devices",
+        "responses": {
+          "201": {
+            "description": "Automation rule created"
+          }
+        }
+      }
+    },
+    "/scenarios": {
+      "post": {
+        "summary": "Create a scenario",
+        "responses": {
+          "201": {
+            "description": "Scenario created"
+          }
+        }
+      }
+    },
+    "/users/{userId}/statistics": {
+      "get": {
+        "summary": "View statistics",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Statistics retrieved"
+          }
+        }
+      }
+    },
+    "/users/{userId}/notifications": {
+      "post": {
+        "summary": "Send notification to user",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Notification sent"
+          }
+        }
+      }
+    },
+    "/users/{userId}/home": {
+      "put": {
+        "summary": "Customize home screen",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Home screen customized"
+          }
+        }
+      }
+    },
+    "/users/{userId}/widgets": {
+      "post": {
+        "summary": "Add widgets",
+        "parameters": [
+          {
+            "name": "userId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "201": {
+            "description": "Widget added"
+          }
+        }
+      }
+    }
+  }
+}
