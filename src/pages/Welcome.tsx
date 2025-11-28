@@ -11,7 +11,7 @@ const Welcome = () => {
       
       <div className="flex-1 flex flex-col items-center justify-center z-10 space-y-12">
         {/* Logo */}
-        <div className="w-40 h-40 bg-white rounded-3xl shadow-elevated flex items-center justify-center mb-4 p-4">
+        <div className="w-40 h-40 bg-white rounded-3xl shadow-elevated flex items-center justify-center mb-4 p-2.5">
           <img src={homieaseLogo} alt="HomiEase Logo" className="w-full h-full object-contain" />
         </div>
         
