@@ -1,22 +1,42 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Menu, User, Search, ChevronDown, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import SideMenu from "@/components/SideMenu";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import AddDeviceForm from "./AddDeviceForm"; 
 
 const AllDevices = () => {
   const navigate = useNavigate();
-  const [selectedHouse, setSelectedHouse] = useState("house-1");
-  const [selectedRoom, setSelectedRoom] = useState("living-room");
   const [searchQuery, setSearchQuery] = useState("");
+
+  // State for Data
+  const [allDevices, setAllDevices] = useState<any[]>([]);
+  const [showAddForm, setShowAddForm] = useState(false);
+
+  const fetchDevices = async () => {
+    try {
+      const response = await fetch("http://localhost:5050/api/lighting/devices");
+      if (!response.ok) throw new Error("Failed");
+      const data = await response.json();
+      setAllDevices(data);
+    } catch (error) {
+      console.error("Error fetching devices:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchDevices();
+  }, []);
+
+  const getCount = (categoryKey: string) => {
+    return allDevices.filter((d) => d.category === categoryKey).length;
+  };
+
+  const handleDeviceAdded = () => {
+    fetchDevices(); 
+    setShowAddForm(false); 
+  };
 
   const deviceCategories = [
     { id: "lamps", name: "Lamps", icon: "💡", path: "/lighting" },
@@ -25,9 +45,25 @@ const AllDevices = () => {
     { id: "cameras", name: "Cameras", icon: "📹", path: "/security" },
   ];
 
+  // Helper to find the correct icon for a search result
+  const getIconForCategory = (catId: string) => {
+    const category = deviceCategories.find(c => c.id === catId);
+    return category ? category.icon : "📦";
+  };
+
+  // Helper to find where to navigate when clicking a search result
+  const getPathForCategory = (catId: string) => {
+    const category = deviceCategories.find(c => c.id === catId);
+    return category ? category.path : "/devices";
+  };
+
+  // Filter logic
+  const filteredDevices = allDevices.filter((device) =>
+    device.name.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background pb-20">
-      {/* Header */}
       <header className="gradient-header text-white p-4 flex items-center justify-between shadow-elevated">
         <SideMenu onNavigate={navigate}>
           <button className="p-2">
@@ -40,7 +76,6 @@ const AllDevices = () => {
         </button>
       </header>
 
-      {/* Content */}
       <div className="p-6 space-y-6">
         {/* Search Bar */}
         <div className="relative">
@@ -54,61 +89,101 @@ const AllDevices = () => {
           <Search className="absolute right-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
         </div>
 
-        {/* House and Room Selectors */}
-        <div className="grid grid-cols-2 gap-3">
-          <Select value={selectedHouse} onValueChange={setSelectedHouse}>
-            <SelectTrigger className="h-14 rounded-2xl bg-teal/20 border-0 text-foreground font-medium">
-              <SelectValue placeholder="Select house" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="house-1">"House - 1"</SelectItem>
-              <SelectItem value="house-2">"House - 2"</SelectItem>
-            </SelectContent>
-          </Select>
-
-          <Select value={selectedRoom} onValueChange={setSelectedRoom}>
-            <SelectTrigger className="h-14 rounded-2xl bg-teal/20 border-0 text-foreground font-medium">
-              <SelectValue placeholder="Select room" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="living-room">Living Room</SelectItem>
-              <SelectItem value="bedroom">Bedroom</SelectItem>
-              <SelectItem value="kitchen">Kitchen</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Device Categories */}
+        {/* --- CONDITIONAL RENDERING START --- */}
         <div className="space-y-3 pt-2">
-          {deviceCategories.map((category) => (
-            <button
-              key={category.id}
-              onClick={() => navigate(category.path)}
-              className="w-full bg-white rounded-2xl p-4 shadow-card flex items-center justify-between transition-smooth hover:shadow-elevated"
-            >
-              <div className="flex items-center gap-4">
-                <span className="text-3xl">{category.icon}</span>
-                <span className="text-lg font-semibold text-foreground">
-                  {category.name}
-                </span>
-              </div>
-              <ChevronDown className="w-5 h-5 text-muted-foreground" />
-            </button>
-          ))}
-        </div>
+          
+          {/* CASE A: Search is EMPTY -> Show Categories */}
+          {searchQuery.trim() === "" ? (
+            deviceCategories.map((category) => {
+              const count = getCount(category.id);
+              return (
+                <button
+                  key={category.id}
+                  onClick={() => navigate(category.path)}
+                  className="w-full bg-white rounded-2xl p-4 shadow-card flex items-center justify-between transition-smooth hover:shadow-elevated"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="text-3xl">{category.icon}</span>
+                    <div className="text-left">
+                      <span className="text-lg font-semibold text-foreground block">
+                        {category.name}
+                      </span>
+                      <span className="text-sm text-muted-foreground">
+                        {count === 0 ? "No devices" : `${count} device${count !== 1 ? 's' : ''}`}
+                      </span>
+                    </div>
+                  </div>
+                  <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                </button>
+              );
+            })
+          ) : (
+            /* CASE B: Search has TEXT -> Show Matching Devices */
+            <>
+              {filteredDevices.map((device) => (
+                <div
+                  key={device.id}
+                  // Clicking a result takes you to its category page (e.g. Lighting)
+                  onClick={() => 
+                    navigate(getPathForCategory(device.category), { 
+                      state: { targetRoom: device.location } 
+                    })
+                }
+                  className="bg-white rounded-2xl p-4 shadow-card flex items-center justify-between transition-smooth hover:shadow-elevated cursor-pointer"
+                >
+                  <div className="flex items-center gap-4">
+                    <span className="text-3xl">
+                      {getIconForCategory(device.category)}
+                    </span>
+                    <div>
+                      <h3 className="font-semibold text-foreground">{device.name}</h3>
+                      <p className="text-sm text-muted-foreground">
+                         {device.location} • {device.status ? "On" : "Off"}
+                      </p>
+                    </div>
+                  </div>
+                  {/* Small arrow to indicate it's clickable */}
+                  <ChevronDown className="w-5 h-5 text-muted-foreground -rotate-90" />
+                </div>
+              ))}
 
-        {/* Add Device Button */}
-        <div className="flex justify-center pt-8">
-          <Button
-            className="bg-muted hover:bg-muted/80 text-foreground font-semibold px-8 h-14 rounded-2xl shadow-card transition-smooth"
-          >
-            <Plus className="w-5 h-5 mr-2" />
-            Add device
-          </Button>
+              {/* No Results Message */}
+              {filteredDevices.length === 0 && (
+                <div className="text-center text-gray-400 py-10">
+                  No devices found matching "{searchQuery}"
+                </div>
+              )}
+            </>
+          )}
         </div>
+        {/* --- CONDITIONAL RENDERING END --- */}
+
+        {/* Add Device Button (Only show if NOT searching) */}
+        {searchQuery.trim() === "" && (
+          <div className="flex justify-center pt-8">
+            {!showAddForm && (
+              <Button
+                className="bg-muted hover:bg-muted/80 text-foreground font-semibold px-8 h-14 rounded-2xl shadow-card transition-smooth"
+                onClick={() => setShowAddForm(true)}
+              >
+                <Plus className="w-5 h-5 mr-2" />
+                Add device
+              </Button>
+            )}
+          </div>
+        )}
+
+        {showAddForm && searchQuery.trim() === "" && (
+          <div className="mt-4">
+            <AddDeviceForm 
+              onDeviceAdded={handleDeviceAdded}
+              onCancel={() => setShowAddForm(false)}
+            />
+          </div>
+        )}
+
       </div>
 
-      {/* Bottom Navigation */}
       <nav className="fixed bottom-0 left-0 right-0 gradient-header text-white shadow-elevated">
         <div className="flex items-center justify-around p-4">
           <button
