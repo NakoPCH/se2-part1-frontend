@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Menu, User, Search, Sun, Trash2, Plus } from "lucide-react"; // Added Plus
-import { Button } from "@/components/ui/button"; // Added Button
+import { Menu, User, Search, Sun, Trash2, Plus } from "lucide-react"; 
+import { Button } from "@/components/ui/button"; 
+import { toast } from "sonner"; // This is already imported, perfect!
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { useNavigate, useLocation } from "react-router-dom"; // Added useLocation
+import { useNavigate, useLocation } from "react-router-dom"; 
 import SideMenu from "@/components/SideMenu";
 import {
   Select,
@@ -12,7 +13,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import AddDeviceForm from "./AddDeviceForm"; // Added Import
+import AddDeviceForm from "./AddDeviceForm"; 
 
 const Lighting = () => {
   const navigate = useNavigate();
@@ -55,6 +56,7 @@ const Lighting = () => {
       setLights(data);
     } catch (error) {
       console.error("Error loading lights:", error);
+      toast.error("Failed to load lights"); // Optional: Notify on load failure
     }
   };
 
@@ -64,33 +66,45 @@ const Lighting = () => {
 
   // 3. Update Device
   const updateDeviceState = async (deviceId: string, updates: any) => {
+    // Optimistic Update
     setLights((prev) =>
       prev.map((l) => (l.id === deviceId ? { ...l, ...updates } : l))
     );
+
     try {
       await fetch(`http://localhost:5050/api/lighting/devices/${deviceId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
       });
+      // Note: We usually don't toast on success for sliders/switches 
+      // because it would spam the user with popups.
     } catch (error) {
       console.error("Error updating device:", error);
-      fetchLights(); 
+      toast.error("Failed to update device"); // <--- NEW: Error Notification
+      fetchLights(); // Revert changes
     }
   };
 
   // 4. Delete Device
   const deleteDevice = async (deviceId: string) => {
     if (!confirm("Are you sure you want to delete this device?")) return;
+    
+    // Optimistic Update
     setLights((prev) => prev.filter(l => l.id !== deviceId));
+    
     try {
       const res = await fetch(`http://localhost:5050/api/lighting/devices/${deviceId}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Delete failed");
+      
+      toast.success("Device deleted successfully"); // Success Notification
+
     } catch (error) {
       console.error("Error deleting:", error);
-      fetchLights();
+      toast.error("Failed to delete device"); // error Notification
+      fetchLights(); // Revert changes
     }
   };
 
@@ -98,7 +112,10 @@ const Lighting = () => {
   const handleDeviceAdded = () => {
     fetchLights();
     setShowAddForm(false);
+    toast.success("New light added successfully"); // <--- NEW: Success Notification
   };
+  
+  // Return statement continues below...
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background pb-20">
