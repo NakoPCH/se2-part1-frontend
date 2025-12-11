@@ -38,11 +38,12 @@ const AllDevices = () => {
     setShowAddForm(false); 
   };
 
+  // --- CONFIGURATION ---
   const deviceCategories = [
-    { id: "lamps", name: "Lamps", icon: "💡", path: "/lighting" },
-    { id: "thermostats", name: "Thermostats", icon: "🌡️", path: "/temperature" },
-    { id: "acs", name: "ACs", icon: "❄️", path: "/temperature" },
-    { id: "cameras", name: "Cameras", icon: "📹", path: "/security" },
+    { id: "lamps", name: "Lamps", icon: "💡", path: "/lighting", disabled: false },
+    { id: "thermostats", name: "Thermostats", icon: "🌡️", path: "/temperature", disabled: true },
+    { id: "acs", name: "ACs", icon: "❄️", path: "/temperature", disabled: true },
+    { id: "cameras", name: "Cameras", icon: "📹", path: "/security", disabled: true },
   ];
 
   // Helper to find the correct icon for a search result
@@ -99,21 +100,31 @@ const AllDevices = () => {
               return (
                 <button
                   key={category.id}
-                  onClick={() => navigate(category.path)}
-                  className="w-full bg-white rounded-2xl p-4 shadow-card flex items-center justify-between transition-smooth hover:shadow-elevated"
+                  disabled={category.disabled} // Disables interaction
+                  onClick={() => !category.disabled && navigate(category.path)}
+                  className={`w-full rounded-2xl p-4 shadow-card flex items-center justify-between transition-smooth 
+                    ${category.disabled 
+                        ? "bg-gray-50 opacity-60 cursor-default border border-dashed border-gray-200" 
+                        : "bg-white hover:shadow-elevated"
+                    }`}
                 >
                   <div className="flex items-center gap-4">
-                    <span className="text-3xl">{category.icon}</span>
+                    <span className={`text-3xl ${category.disabled ? "grayscale opacity-50" : ""}`}>
+                        {category.icon}
+                    </span>
                     <div className="text-left">
-                      <span className="text-lg font-semibold text-foreground block">
+                      <span className={`text-lg font-semibold block ${category.disabled ? "text-gray-400" : "text-foreground"}`}>
                         {category.name}
                       </span>
+                      {/* FIX: Removed "Not installed" logic, now always shows count */}
                       <span className="text-sm text-muted-foreground">
                         {count === 0 ? "No devices" : `${count} device${count !== 1 ? 's' : ''}`}
                       </span>
                     </div>
                   </div>
-                  <ChevronDown className="w-5 h-5 text-muted-foreground" />
+                  
+                  {/* Hide chevron if disabled */}
+                  {!category.disabled && <ChevronDown className="w-5 h-5 text-muted-foreground" />}
                 </button>
               );
             })
@@ -123,7 +134,6 @@ const AllDevices = () => {
               {filteredDevices.map((device) => (
                 <div
                   key={device.id}
-                  // Clicking a result takes you to its category page (e.g. Lighting)
                   onClick={() => 
                     navigate(getPathForCategory(device.category), { 
                       state: { targetRoom: device.location } 
@@ -138,16 +148,14 @@ const AllDevices = () => {
                     <div>
                       <h3 className="font-semibold text-foreground">{device.name}</h3>
                       <p className="text-sm text-muted-foreground">
-                         {device.location} • {device.status ? "On" : "Off"}
+                          {device.location} • {device.status ? "On" : "Off"}
                       </p>
                     </div>
                   </div>
-                  {/* Small arrow to indicate it's clickable */}
                   <ChevronDown className="w-5 h-5 text-muted-foreground -rotate-90" />
                 </div>
               ))}
 
-              {/* No Results Message */}
               {filteredDevices.length === 0 && (
                 <div className="text-center text-gray-400 py-10">
                   No devices found matching "{searchQuery}"
@@ -158,7 +166,7 @@ const AllDevices = () => {
         </div>
         {/* --- CONDITIONAL RENDERING END --- */}
 
-        {/* Add Device Button (Only show if NOT searching) */}
+        {/* Add Device Button */}
         {searchQuery.trim() === "" && (
           <div className="flex justify-center pt-8">
             {!showAddForm && (
@@ -197,7 +205,7 @@ const AllDevices = () => {
           </button>
           <button className="flex flex-col items-center gap-1 transition-smooth hover:scale-105">
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
+              <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
             </svg>
             <span className="text-xs font-medium">All devices</span>
           </button>

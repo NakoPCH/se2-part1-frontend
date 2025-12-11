@@ -9,11 +9,11 @@ interface SideMenuProps {
 
 const SideMenu = ({ children, onNavigate }: SideMenuProps) => {
   const menuItems = [
-    { icon: Sun, label: "lighting", path: "/lighting" },
-    { icon: Thermometer, label: "temperature", path: "/temperature" },
-    { icon: Shield, label: "security", path: "/security" },
-    { icon: Terminal, label: "automations", path: "/automations" },
-    { icon: Tv, label: "scenarios", path: "/scenarios" },
+    { icon: Sun, label: "Lighting", path: "/lighting", disabled: false },
+    { icon: Thermometer, label: "Temperature", path: "/temperature", disabled: true },
+    { icon: Shield, label: "Security", path: "/security", disabled: true },
+    { icon: Terminal, label: "Automations", path: "/automations", disabled: false },
+    { icon: Tv, label: "Scenarios", path: "/scenarios", disabled: true },
   ];
 
   return (
@@ -29,10 +29,13 @@ const SideMenu = ({ children, onNavigate }: SideMenuProps) => {
               {menuItems.map((item) => (
                 <button
                   key={item.label}
+                  disabled={item.disabled} 
                   onClick={() => onNavigate?.(item.path)}
                   className={cn(
-                    "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-foreground",
-                    "hover:bg-muted/50 transition-smooth text-left"
+                    "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-smooth",
+                    item.disabled 
+                      ? "text-foreground opacity-40 cursor-default" 
+                      : "text-foreground hover:bg-muted/50 cursor-pointer"
                   )}
                 >
                   <item.icon className="w-5 h-5" />
@@ -44,10 +47,12 @@ const SideMenu = ({ children, onNavigate }: SideMenuProps) => {
           
           <div className="mt-auto p-6 border-t">
             <button
+              disabled={true} // <--- Disabled here
               onClick={() => onNavigate?.("/settings")}
               className={cn(
-                "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-foreground",
-                "hover:bg-muted/50 transition-smooth text-left"
+                "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-smooth",
+                // Pale & unclickable style applied manually here
+                "text-foreground opacity-40 cursor-default"
               )}
             >
               <Settings className="w-5 h-5" />

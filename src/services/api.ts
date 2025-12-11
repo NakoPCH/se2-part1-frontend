@@ -183,4 +183,17 @@ export const userAPI = {
   },
 };
 
+// Shortcuts API
+export const shortcutsAPI = {
+  async getShortcuts() {
+    const response = await api.get('/shortcuts');
+    return response.data;
+  },
+
+  async saveShortcuts(shortcuts: any[]) {
+    const response = await api.post('/shortcuts', shortcuts);
+    return response.data;
+  },
+};
+
 export default api;
