@@ -19,6 +19,11 @@ const Login = () => {
     try {
       // Call real backend API - POST /auth/login
       await authAPI.login(username, password);
+      
+      // --- NEW: Save the username so Homepage can display it ---
+      localStorage.setItem("username", username);
+      // --------------------------------------------------------
+
       toast.success("Login successful!");
       navigate("/home");
     } catch (error) {

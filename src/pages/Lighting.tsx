@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Menu, User, Search, Sun, Trash2, Plus } from "lucide-react"; // Added Plus
-import { Button } from "@/components/ui/button"; // Added Button
+import { Menu, User, Search, Sun, Trash2, Plus } from "lucide-react"; 
+import { Button } from "@/components/ui/button"; 
+import { toast } from "sonner"; 
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { useNavigate, useLocation } from "react-router-dom"; // Added useLocation
+import { useNavigate, useLocation } from "react-router-dom"; 
 import SideMenu from "@/components/SideMenu";
 import {
   Select,
@@ -12,17 +13,18 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import AddDeviceForm from "./AddDeviceForm"; // Added Import
+import AddDeviceForm from "./AddDeviceForm"; 
 
 const Lighting = () => {
   const navigate = useNavigate();
   const locationState = useLocation();
-  const [selectedRoom, setSelectedRoom] = useState("Living Room");
+  
+  // CHANGED: Default to "All Rooms"
+  const [selectedRoom, setSelectedRoom] = useState("All Rooms");
+  
   const [availableRooms, setAvailableRooms] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [lights, setLights] = useState<any[]>([]);
-  
-  // New state for the form
   const [showAddForm, setShowAddForm] = useState(false);
 
   // 1. Fetch Rooms
@@ -36,11 +38,10 @@ const Lighting = () => {
         const incomingRoom = locationState.state?.targetRoom;
         
         if (incomingRoom && data.includes(incomingRoom)) {
-          // If valid room passed, select it!
           setSelectedRoom(incomingRoom);
-        } else if (data.length > 0) {
-          // Otherwise, default to the first one
-          setSelectedRoom(data[0]);
+        } else {
+          // CHANGED: Default to "All Rooms" if no specific room requested
+          setSelectedRoom("All Rooms");
         }
       })
       .catch(err => console.error("Error loading rooms", err));
@@ -55,6 +56,7 @@ const Lighting = () => {
       setLights(data);
     } catch (error) {
       console.error("Error loading lights:", error);
+      toast.error("Failed to load lights"); 
     }
   };
 
@@ -67,6 +69,7 @@ const Lighting = () => {
     setLights((prev) =>
       prev.map((l) => (l.id === deviceId ? { ...l, ...updates } : l))
     );
+
     try {
       await fetch(`http://localhost:5050/api/lighting/devices/${deviceId}`, {
         method: "PUT",
@@ -75,6 +78,7 @@ const Lighting = () => {
       });
     } catch (error) {
       console.error("Error updating device:", error);
+      toast.error("Failed to update device"); 
       fetchLights(); 
     }
   };
@@ -82,24 +86,29 @@ const Lighting = () => {
   // 4. Delete Device
   const deleteDevice = async (deviceId: string) => {
     if (!confirm("Are you sure you want to delete this device?")) return;
+    
     setLights((prev) => prev.filter(l => l.id !== deviceId));
+    
     try {
       const res = await fetch(`http://localhost:5050/api/lighting/devices/${deviceId}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Delete failed");
+      toast.success("Device deleted successfully"); 
+
     } catch (error) {
       console.error("Error deleting:", error);
-      fetchLights();
+      toast.error("Failed to delete device"); 
+      fetchLights(); 
     }
   };
 
-  // 5. Handle Adding Lamp
   const handleDeviceAdded = () => {
     fetchLights();
     setShowAddForm(false);
+    toast.success("New light added successfully"); 
   };
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background pb-20">
       <header className="gradient-header text-white p-4 flex items-center justify-between shadow-elevated">
@@ -133,6 +142,8 @@ const Lighting = () => {
               <SelectValue placeholder="Select room" />
             </SelectTrigger>
             <SelectContent>
+              {/* NEW: All Rooms Option */}
+              <SelectItem value="All Rooms">All Rooms</SelectItem>
               {availableRooms.map((room) => (
                 <SelectItem key={room} value={room}>{room}</SelectItem>
               ))}
@@ -146,7 +157,8 @@ const Lighting = () => {
             .filter(
               (light) =>
                 light.category === "lamps" &&
-                light.location === selectedRoom && 
+                // NEW LOGIC: If "All Rooms" is selected, ignore location check
+                (selectedRoom === "All Rooms" || light.location === selectedRoom) && 
                 light.name.toLowerCase().includes(searchQuery.toLowerCase())
             )
             .map((light) => (
@@ -159,7 +171,6 @@ const Lighting = () => {
                     <div
                       className="text-3xl transition-all duration-500"
                       style={{
-                        // LOGIC: Show color ONLY if (Switch is ON) AND (Brightness > 0)
                         filter: (light.status && light.brightness > 0) ? "none" : "grayscale(100%) opacity(0.3)",
                         transform: (light.status && light.brightness > 0) ? "scale(1.1)" : "scale(1)",
                       }}
@@ -169,6 +180,8 @@ const Lighting = () => {
                     <div>
                       <h3 className="font-semibold text-foreground">{light.name}</h3>
                       <p className="text-sm text-muted-foreground">
+                        {/* Display Room Name if in "All Rooms" mode for clarity */}
+                        {selectedRoom === "All Rooms" && <span className="font-medium text-teal">{light.location} • </span>}
                         {light.status ? `Brightness: ${light.brightness}%` : "Off"}
                       </p>
                     </div>
@@ -177,7 +190,6 @@ const Lighting = () => {
                   <div className="flex items-center gap-3">
                     <Switch
                       checked={light.status === true || light.status === "active"}
-                      // SIMPLE: Just toggle status. Don't touch brightness.
                       onCheckedChange={(checked) =>
                         updateDeviceState(light.id, { status: checked })
                       }
@@ -202,12 +214,10 @@ const Lighting = () => {
                       value={light.brightness || 0}
                       onChange={(e) => {
                         const newVal = parseInt(e.target.value);
-                        // SIMPLE: Just update brightness locally. Don't touch status.
                         setLights((prev) =>
                           prev.map((l) => l.id === light.id ? { ...l, brightness: newVal } : l)
                         );
                       }}
-                      // SIMPLE: Just save brightness to backend.
                       onMouseUp={(e) => updateDeviceState(light.id, { brightness: parseInt(e.currentTarget.value) })}
                       onTouchEnd={(e) => updateDeviceState(light.id, { brightness: parseInt(e.currentTarget.value) })}
                       className="w-full h-2 bg-muted rounded-lg appearance-none cursor-pointer accent-teal"
@@ -220,9 +230,9 @@ const Lighting = () => {
               </div>
             ))}
             
-            {lights.filter(l => l.category === "lamps" && l.location === selectedRoom).length === 0 && (
+            {lights.filter(l => l.category === "lamps" && (selectedRoom === "All Rooms" || l.location === selectedRoom)).length === 0 && (
               <div className="text-center text-gray-400 py-4">
-                No lamps in {selectedRoom}.
+                No lamps found {selectedRoom !== "All Rooms" ? `in ${selectedRoom}` : ""}.
               </div>
             )}
         </div>
@@ -240,12 +250,12 @@ const Lighting = () => {
           )}
         </div>
 
-        {/* Form with FORCED CATEGORY & DEFAULT ROOM */}
         {showAddForm && (
           <div className="mt-4">
             <AddDeviceForm 
               forcedCategory="lamps"
-              defaultRoom={selectedRoom} // <--- Pass the current state here!
+              // SAFETY: If "All Rooms" is selected, default to the first real room available
+              defaultRoom={selectedRoom === "All Rooms" ? availableRooms[0] : selectedRoom}
               onDeviceAdded={handleDeviceAdded}
               onCancel={() => setShowAddForm(false)}
             />
@@ -270,7 +280,7 @@ const Lighting = () => {
             className="flex flex-col items-center gap-1 transition-smooth hover:scale-105"
           >
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
+              <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
             </svg>
             <span className="text-xs font-medium">All devices</span>
           </button>

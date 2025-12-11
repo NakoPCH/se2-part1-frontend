@@ -124,10 +124,30 @@ export const scenariosAPI = {
   },
 };
 
-// Automations API - POST /automations
+// Automations API
 export const automationsAPI = {
-  async createAutomation(name: string, trigger: any, actions: any[]) {
-    const response = await api.post('/automations', { name, trigger, actions });
+  // Get all rules
+  async getAutomations() {
+    const response = await api.get('/automations');
+    return response.data;
+  },
+
+  // Create a new rule
+  // We changed arguments to 'data' to match the form structure better
+  async createAutomation(data: any) {
+    const response = await api.post('/automations', data);
+    return response.data;
+  },
+
+  // Update an existing rule
+  async updateAutomation(id: string, data: any) {
+    const response = await api.put(`/automations/${id}`, data);
+    return response.data;
+  },
+
+  // Delete a rule
+  async deleteAutomation(id: string) {
+    const response = await api.delete(`/automations/${id}`);
     return response.data;
   },
 };
@@ -159,6 +179,19 @@ export const userAPI = {
 
   async addWidget(userId: string, widgetData: any) {
     const response = await api.post(`/users/${userId}/widgets`, widgetData);
+    return response.data;
+  },
+};
+
+// Shortcuts API
+export const shortcutsAPI = {
+  async getShortcuts() {
+    const response = await api.get('/shortcuts');
+    return response.data;
+  },
+
+  async saveShortcuts(shortcuts: any[]) {
+    const response = await api.post('/shortcuts', shortcuts);
     return response.data;
   },
 };
