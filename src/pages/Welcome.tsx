@@ -25,6 +25,7 @@ const Welcome = () => {
               variant="secondary" 
               size="lg" 
               className="w-full bg-white/95 hover:bg-white text-teal font-semibold text-lg h-14 rounded-2xl shadow-elevated"
+              data-cy="welcome-login-btn" // <<<< ΠΡΟΣΘΗΚΗ data-cy
             >
               Log in
             </Button>

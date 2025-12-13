@@ -56,6 +56,7 @@ const Login = () => {
               onChange={(e) => setUsername(e.target.value)}
               className="h-14 bg-white/20 border-white/30 text-white placeholder:text-white/60"
               required
+              data-cy="login-username-input" // 💡 data-cy για το πεδίο Username
             />
           </div>
           <div>
@@ -66,12 +67,14 @@ const Login = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="h-14 bg-white/20 border-white/30 text-white placeholder:text-white/60"
               required
+              data-cy="login-password-input" // 💡 data-cy για το πεδίο Password
             />
           </div>
           <Button
             type="submit"
             disabled={loading}
             className="w-full h-14 bg-white text-primary hover:bg-white/90 font-semibold text-lg rounded-2xl"
+            data-cy="login-submit-btn" // 💡 data-cy για το κουμπί Login
           >
             {loading ? "Signing in..." : "Log in"}
           </Button>
@@ -81,6 +84,7 @@ const Login = () => {
           <button
             onClick={() => navigate("/signup")}
             className="text-white/80 hover:text-white transition-smooth"
+            data-cy="signup-button" // 💡 data-cy για το κουμπί Sign up
           >
             Don't have an account? <span className="font-semibold">Sign up</span>
           </button>
