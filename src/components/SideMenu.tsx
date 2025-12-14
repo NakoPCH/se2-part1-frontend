@@ -26,11 +26,14 @@ const SideMenu = ({ children, onNavigate }: SideMenuProps) => {
           <div className="p-6">
             <h2 className="text-muted-foreground text-sm font-medium mb-4">Menu</h2>
             <nav className="space-y-1">
+              {/* Loop for main items: 'item' exists here */}
               {menuItems.map((item) => (
                 <button
                   key={item.label}
                   disabled={item.disabled} 
                   onClick={() => onNavigate?.(item.path)}
+                  // Uses 'item.label' dynamically
+                  data-testid={`menu-item-${item.label.toLowerCase()}`} 
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-smooth",
                     item.disabled 
@@ -46,12 +49,13 @@ const SideMenu = ({ children, onNavigate }: SideMenuProps) => {
           </div>
           
           <div className="mt-auto p-6 border-t">
+            {/* Settings Button: Hardcoded outside the loop, so we hardcode the ID */}
             <button
-              disabled={true} // <--- Disabled here
+              disabled={true}
               onClick={() => onNavigate?.("/settings")}
+              data-testid="menu-item-settings" 
               className={cn(
                 "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-smooth",
-                // Pale & unclickable style applied manually here
                 "text-foreground opacity-40 cursor-default"
               )}
             >
