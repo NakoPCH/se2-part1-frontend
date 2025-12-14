@@ -117,7 +117,7 @@ const Lighting = () => {
             <Menu className="w-6 h-6" />
           </button>
         </SideMenu>
-        <h1 className="text-xl font-semibold">lighting</h1>
+        <h1 className="text-xl font-semibold">Lighting</h1>
         <button className="p-2" onClick={() => navigate("/profile")}>
           <User className="w-6 h-6" />
         </button>

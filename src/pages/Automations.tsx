@@ -4,7 +4,6 @@ import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 import SideMenu from "@/components/SideMenu";
 import AddAutomationForm from "./AddAutomationForm";
-import BASE_URL from "../services/api";
 import { toast } from "sonner";
 
 const Automations = () => {
@@ -35,7 +34,6 @@ const Automations = () => {
 
         try {
             // 2. Send PUT request to the specific ID
-            // FIX: Added `/${id}` to the URL
             await fetch(`http://localhost:5050/api/automations/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -88,7 +86,7 @@ const Automations = () => {
                 <SideMenu onNavigate={navigate}>
                     <button className="p-2"><Menu className="w-6 h-6" /></button>
                 </SideMenu>
-                <h1 className="text-xl font-semibold">Automation</h1>
+                <h1 className="text-xl font-semibold">Automations</h1>
                 <button className="p-2" onClick={() => navigate("/profile")}>
                     <User className="w-6 h-6" />
                 </button>
@@ -110,7 +108,8 @@ const Automations = () => {
                     {automations.map((rule) => (
                         <div
                             key={rule.id}
-                            onClick={() => handleEditClick(rule)} // NEW: Click card to edit
+                            data-testid={`automation-card-${rule.id}`} // <--- TEST ID
+                            onClick={() => handleEditClick(rule)} 
                             className="bg-white p-4 rounded-2xl shadow-card flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow"
                         >
                             <div className="flex items-center gap-4">
@@ -131,6 +130,7 @@ const Automations = () => {
                             <div className="flex items-center gap-3">
                                 <Switch
                                     checked={rule.isActive}
+                                    data-testid={`automation-toggle-${rule.id}`} // <--- TEST ID
                                     // FIX 1: Pass only the ID and Status (no event needed here)
                                     onCheckedChange={() => toggleAutomation(rule.id, rule.isActive)}
 
@@ -140,6 +140,7 @@ const Automations = () => {
                                     className="data-[state=checked]:bg-teal"
                                 />
                                 <button
+                                    data-testid={`delete-automation-${rule.id}`} // <--- TEST ID
                                     onClick={(e) => deleteAutomation(rule.id, e)} // Updated to pass event
                                     className="text-gray-400 hover:text-red-500 p-2"
                                 >
@@ -157,7 +158,8 @@ const Automations = () => {
                 {/* Add Button */}
                 <div className="flex justify-center pt-4">
                     <button
-                        onClick={handleAddNew} // Updated to use new handler
+                        onClick={handleAddNew} 
+                        data-testid="add-automation-btn" // <--- TEST ID
                         className="bg-white hover:bg-gray-50 text-gray-800 font-semibold px-6 py-4 rounded-2xl shadow-card flex items-center gap-2 transition-all"
                     >
                         <Plus className="w-5 h-5" />
@@ -169,7 +171,7 @@ const Automations = () => {
             {/* Modal */}
             {showAddForm && (
                 <AddAutomationForm
-                    initialData={editingRule} // NEW: Pass the data to the form
+                    initialData={editingRule} 
                     onSuccess={() => { setShowAddForm(false); fetchAutomations(); }}
                     onCancel={() => setShowAddForm(false)}
                 />
