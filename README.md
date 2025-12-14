@@ -12,6 +12,7 @@
 
 ---
 
-## Render.com url for frontend
+## Render.com url for frontend:
 - https://homiease-frontend.onrender.com/
 - Backend is also configured on render.com and communicates properly with the frontend
+- Render auto-deploys only after CI Checks Pass
