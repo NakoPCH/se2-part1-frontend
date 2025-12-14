@@ -11,3 +11,7 @@
 - Εμφανίζει δεδομένα που παρέχονται από τον backend μέσω mock/hardcoded πληροφορίας.  
 
 ---
+
+## Render.com url for frontend
+- https://homiease-frontend.onrender.com/
+- Backend is also configured on render.com and communicates properly with the frontend
