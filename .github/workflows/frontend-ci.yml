@@ -1,0 +1,57 @@
+name: Frontend E2E Pipeline
+
+# Trigger this on any push to main or master branch
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  cypress-run:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out your Frontend Code (The repo this file is in)
+      - name: Checkout Frontend
+        uses: actions/checkout@v4
+
+      # 2. Check out your Backend Code (So we have a server to test against)
+      - name: Checkout Backend
+        uses: actions/checkout@v4
+        with:
+          # 👇 CHANGE THIS LINE TO YOUR BACKEND REPO!
+          repository: NakoPCH/se2-part1-backend 
+          path: backend-temp 
+
+      # 3. Install Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 4. Start the Backend Server
+      - name: Start Backend
+        working-directory: ./backend-temp
+        env:
+          PORT: 5050
+          # No database URI needed because you use file storage
+        run: |
+          npm ci
+          # Start backend in the background (&)
+          npm start & 
+          # Wait until the server is actually listening on port 5050
+          npx wait-on http://localhost:5050
+
+      # 5. Run the Cypress Tests
+      - name: Run Cypress E2E
+        uses: cypress-io/github-action@v6
+        with:
+          # Command to start your Frontend (Vite)
+          start: npm run dev
+          
+          # Wait for Frontend to be ready before testing
+          wait-on: 'http://localhost:5173'
+          
+          # Use Chrome browser
+          browser: chrome
