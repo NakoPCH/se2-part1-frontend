@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
-import { X } from "lucide-react"; // Import X icon for consistency
+import { X } from "lucide-react"; 
+import { API_BASE_URL } from "@/config";
 
 interface AddDeviceFormProps {
   onDeviceAdded?: (device: any) => void;
@@ -25,7 +26,7 @@ const AddDeviceForm: React.FC<AddDeviceFormProps> = ({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    fetch("http://localhost:5050/api/lighting/rooms")
+    fetch(`${API_BASE_URL}/api/lighting/rooms`)
       .then(res => res.json())
       .then(data => {
         setRooms(data);
@@ -46,7 +47,7 @@ const AddDeviceForm: React.FC<AddDeviceFormProps> = ({
     setError("");
 
     try {
-      const res = await fetch("http://localhost:5050/api/lighting/devices", {
+      const res = await fetch(`${API_BASE_URL}/api/lighting/devices`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),

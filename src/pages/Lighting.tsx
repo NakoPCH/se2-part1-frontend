@@ -14,6 +14,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import AddDeviceForm from "./AddDeviceForm"; 
+import { API_BASE_URL } from "@/config";
 
 const Lighting = () => {
   const navigate = useNavigate();
@@ -29,7 +30,7 @@ const Lighting = () => {
 
   // 1. Fetch Rooms
   useEffect(() => {
-    fetch("http://localhost:5050/api/lighting/rooms")
+    fetch(`${API_BASE_URL}/api/lighting/rooms`)
       .then(res => res.json())
       .then(data => {
         setAvailableRooms(data);
@@ -50,7 +51,7 @@ const Lighting = () => {
   // 2. Fetch Lights
   const fetchLights = async () => {
     try {
-      const response = await fetch("http://localhost:5050/api/lighting/devices");
+      const response = await fetch(`${API_BASE_URL}/api/lighting/devices`);
       if (!response.ok) throw new Error("Failed");
       const data = await response.json();
       setLights(data);
@@ -71,7 +72,7 @@ const Lighting = () => {
     );
 
     try {
-      await fetch(`http://localhost:5050/api/lighting/devices/${deviceId}`, {
+      await fetch(`${API_BASE_URL}/api/lighting/devices/${deviceId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
@@ -90,7 +91,7 @@ const Lighting = () => {
     setLights((prev) => prev.filter(l => l.id !== deviceId));
     
     try {
-      const res = await fetch(`http://localhost:5050/api/lighting/devices/${deviceId}`, {
+      const res = await fetch(`${API_BASE_URL}/api/lighting/devices/${deviceId}`, {
         method: "DELETE",
       });
       if (!res.ok) throw new Error("Delete failed");

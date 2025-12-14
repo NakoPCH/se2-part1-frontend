@@ -7,6 +7,7 @@ import SideMenu from "@/components/SideMenu";
 import { toast } from "sonner";
 import AddAutomationForm from "./AddAutomationForm";
 import { shortcutsAPI, automationsAPI } from "../services/api";
+import { API_BASE_URL } from "@/config";
 
 const Home = () => {
   const navigate = useNavigate();
@@ -33,7 +34,7 @@ const Home = () => {
   const fetchAllData = async () => {
     try {
       // Fetch Lights
-      const lightsRes = await fetch("http://localhost:5050/api/lighting/devices");
+      const lightsRes = await fetch(`${API_BASE_URL}/api/lighting/devices`);
       const lightsData = await lightsRes.json();
       setLights(lightsData);
 
@@ -81,7 +82,7 @@ const Home = () => {
   const updateLight = async (id: string, updates: any) => {
     setLights(prev => prev.map(l => l.id === id ? { ...l, ...updates } : l));
     try {
-      await fetch(`http://localhost:5050/api/lighting/devices/${id}`, {
+      await fetch(`${API_BASE_URL}/api/lighting/devices/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
@@ -111,7 +112,7 @@ const Home = () => {
       // We use Promise.all to send all requests in parallel
       await Promise.all(
         activeLights.map(light =>
-          fetch(`http://localhost:5050/api/lighting/devices/${light.id}`, {
+          fetch(`${API_BASE_URL}/api/lighting/devices/${light.id}`, {
             method: "PUT",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ status: false }),

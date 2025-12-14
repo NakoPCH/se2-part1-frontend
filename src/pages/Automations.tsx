@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import SideMenu from "@/components/SideMenu";
 import AddAutomationForm from "./AddAutomationForm";
 import { toast } from "sonner";
+import { API_BASE_URL } from "@/config";
 
 const Automations = () => {
     const navigate = useNavigate();
@@ -16,7 +17,7 @@ const Automations = () => {
 
     const fetchAutomations = async () => {
         try {
-            const res = await fetch("http://localhost:5050/api/automations");
+            const res = await fetch(`${API_BASE_URL}/api/automations`);
             const data = await res.json();
             setAutomations(data);
         } catch (err) {
@@ -34,7 +35,7 @@ const Automations = () => {
 
         try {
             // 2. Send PUT request to the specific ID
-            await fetch(`http://localhost:5050/api/automations/${id}`, {
+            await fetch(`${API_BASE_URL}/api/automations/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ isActive: !currentStatus })
@@ -55,7 +56,7 @@ const Automations = () => {
         setAutomations(prev => prev.filter(a => a.id !== id));
 
         try {
-            await fetch(`http://localhost:5050/api/automations/${id}`, { method: "DELETE" });
+            await fetch(`${API_BASE_URL}/api/automations/${id}`, { method: "DELETE" });
 
             // 2. ADD SUCCESS TOAST
             toast.success("Automation rule deleted");

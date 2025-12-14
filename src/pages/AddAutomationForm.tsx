@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { X, Check } from "lucide-react";
 import { toast } from "sonner";
+import { API_BASE_URL } from "@/config";
 
 interface AddAutomationFormProps {
     initialData?: any; 
@@ -21,7 +22,7 @@ const AddAutomationForm: React.FC<AddAutomationFormProps> = ({ initialData, onSu
 
     // Fetch devices for the checklist
     useEffect(() => {
-        fetch("http://localhost:5050/api/lighting/devices")
+        fetch(`${API_BASE_URL}/api/lighting/devices`)
             .then((res) => res.json())
             .then((data) => setDevices(data))
             .catch(() => setError("Failed to load devices"));
@@ -41,8 +42,8 @@ const AddAutomationForm: React.FC<AddAutomationFormProps> = ({ initialData, onSu
 
         try {
             const url = initialData
-                ? `http://localhost:5050/api/automations/${initialData.id}`
-                : "http://localhost:5050/api/automations";
+                ? `${API_BASE_URL}/api/automations/${initialData.id}`
+                : `${API_BASE_URL}/api/automations`;
 
             const method = initialData ? "PUT" : "POST";
 

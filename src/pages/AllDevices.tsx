@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { useNavigate } from "react-router-dom";
 import SideMenu from "@/components/SideMenu";
 import AddDeviceForm from "./AddDeviceForm"; 
+import { API_BASE_URL } from "@/config";
 
 const AllDevices = () => {
   const navigate = useNavigate();
@@ -16,7 +17,7 @@ const AllDevices = () => {
 
   const fetchDevices = async () => {
     try {
-      const response = await fetch("http://localhost:5050/api/lighting/devices");
+      const response = await fetch(`${API_BASE_URL}/api/lighting/devices`);
       if (!response.ok) throw new Error("Failed");
       const data = await response.json();
       setAllDevices(data);
