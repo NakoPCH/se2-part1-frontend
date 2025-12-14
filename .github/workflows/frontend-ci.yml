@@ -3,9 +3,9 @@ name: Frontend E2E Pipeline
 # Trigger this on any push to main or master branch
 on:
   push:
-    branches: [ "main", "master" ]
+    branches: [ "*" ]
   pull_request:
-    branches: [ "main", "master" ]
+    branches: [ "*" ]
 
 jobs:
   cypress-run:
