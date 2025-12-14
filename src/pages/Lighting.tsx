@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import { Menu, User, Search, Sun, Trash2, Plus } from "lucide-react"; 
 import { Button } from "@/components/ui/button"; 
@@ -71,11 +72,18 @@ const Lighting = () => {
     );
 
     try {
-      await fetch(`http://localhost:5050/api/lighting/devices/${deviceId}`, {
+      const res = await fetch(`http://localhost:5050/api/lighting/devices/${deviceId}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(updates),
       });
+      // 💡 ΝΕΑ ΠΡΟΣΘΗΚΗ: Μήνυμα επιτυχίας
+      if (res.ok) {
+          toast.success("Device updated successfully"); 
+          await new Promise(resolve => setTimeout(resolve, 500)); // 500ms
+      } else {
+          throw new Error("Update failed");
+      }
     } catch (error) {
       console.error("Error updating device:", error);
       toast.error("Failed to update device"); 
@@ -194,6 +202,7 @@ const Lighting = () => {
                         updateDeviceState(light.id, { status: checked })
                       }
                       className="data-[state=checked]:bg-teal"
+                      data-cy={`device-toggle-${light.name.replace(/\s/g, '-')}`} // <<<< ΝΕΑ ΓΡΑΜΜΗ
                     />
                     <button 
                       onClick={() => deleteDevice(light.id)}

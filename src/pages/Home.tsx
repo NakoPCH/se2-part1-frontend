@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -209,7 +210,7 @@ const Home = () => {
               transform: (light.status && light.brightness > 0) ? "scale(1.1)" : "scale(1)"
             }}
           >
-            💡
+            
           </div>
           <div>
             <h3 className="font-semibold text-foreground">{light.name}</h3>

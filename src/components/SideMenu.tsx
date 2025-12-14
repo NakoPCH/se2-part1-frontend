@@ -31,6 +31,7 @@ const SideMenu = ({ children, onNavigate }: SideMenuProps) => {
                   key={item.label}
                   disabled={item.disabled} 
                   onClick={() => onNavigate?.(item.path)}
+                  data-cy={`nav-${item.label.toLowerCase()}-btn`} // <<<< ΝΕΑ ΠΡΟΣΘΗΚΗ
                   className={cn(
                     "w-full flex items-center gap-3 px-3 py-3 rounded-lg text-left transition-smooth",
                     item.disabled 
