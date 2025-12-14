@@ -113,7 +113,8 @@ const Lighting = () => {
     <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background pb-20">
       <header className="gradient-header text-white p-4 flex items-center justify-between shadow-elevated">
         <SideMenu onNavigate={navigate}>
-          <button className="p-2">
+          {/* UPDATED: Added data-testid here for consistency */}
+          <button className="p-2" data-testid="menu-trigger">
             <Menu className="w-6 h-6" />
           </button>
         </SideMenu>

@@ -283,7 +283,10 @@ const Home = () => {
       {/* Header */}
       <header className="gradient-header text-white p-4 flex items-center justify-between shadow-elevated">
         <SideMenu onNavigate={navigate}>
-          <button className="p-2"><Menu className="w-6 h-6" /></button>
+          {/* UPDATED: Added data-testid here */}
+          <button className="p-2" data-testid="menu-trigger">
+             <Menu className="w-6 h-6" />
+          </button>
         </SideMenu>
         <h1 className="text-xl font-semibold">Homepage</h1>
         <button className="p-2" onClick={() => navigate("/profile")}>
@@ -496,7 +499,7 @@ const Home = () => {
             onClick={() => navigate("/devices")}
             className="flex flex-col items-center gap-1 transition-smooth hover:scale-105 opacity-70"
           >
-            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" /></svg>
+            <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" /></svg>
             <span className="text-xs font-medium">All devices</span>
           </button>
         </div>
