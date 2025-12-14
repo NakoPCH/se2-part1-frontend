@@ -1,22 +1,22 @@
 import React, { useState, useEffect } from "react";
+import { X } from "lucide-react"; // Import X icon for consistency
 
 interface AddDeviceFormProps {
   onDeviceAdded?: (device: any) => void;
   onCancel?: () => void;
   forcedCategory?: string;
-  defaultRoom?: string; // <--- NEW PROP
+  defaultRoom?: string;
 }
 
 const AddDeviceForm: React.FC<AddDeviceFormProps> = ({ 
   onDeviceAdded, 
   onCancel, 
   forcedCategory,
-  defaultRoom // Destructure it
+  defaultRoom 
 }) => {
   const [form, setForm] = useState({ 
     name: "", 
     category: forcedCategory || "lamps", 
-    // Start empty, we fill this in the useEffect below
     location: "" 
   });
   
@@ -29,16 +29,12 @@ const AddDeviceForm: React.FC<AddDeviceFormProps> = ({
       .then(res => res.json())
       .then(data => {
         setRooms(data);
-        
-        // LOGIC:
-        // 1. If 'defaultRoom' was passed, use that.
-        // 2. Otherwise, default to the first room in the list.
+        // Default Room Logic
         const startingRoom = defaultRoom || (data.length > 0 ? data[0] : "");
-        
         setForm(prev => ({ ...prev, location: startingRoom }));
       })
       .catch(err => console.error("Failed to fetch rooms", err));
-  }, [defaultRoom]); // Re-run if defaultRoom changes
+  }, [defaultRoom]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -64,7 +60,6 @@ const AddDeviceForm: React.FC<AddDeviceFormProps> = ({
         setForm({ 
           name: "", 
           category: forcedCategory || "lamps", 
-          // Reset location to the same default
           location: defaultRoom || (rooms.length > 0 ? rooms[0] : "")
         });
         if (onDeviceAdded) onDeviceAdded(data);
@@ -76,80 +71,83 @@ const AddDeviceForm: React.FC<AddDeviceFormProps> = ({
   };
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      style={{
-        marginBottom: 16,
-        padding: 12,
-        background: "#fff",
-        borderRadius: 7,
-        boxShadow: "0 2px 8px #eee",
-        display: "flex",
-        flexDirection: "column",
-        gap: "10px"
-      }}
-    >
-      <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 600 }}>
-        {forcedCategory ? `Add New ${forcedCategory.slice(0, -1)}` : "Add New Device"}
-      </h3>
-      
-      <input
-        name="name"
-        required
-        placeholder="Device Name"
-        value={form.name}
-        onChange={handleChange}
-        style={{ padding: 8, borderRadius: 4, border: "1px solid #ccc" }}
-      />
-
-      {!forcedCategory && (
-        <select
-          name="category"
-          value={form.category}
-          onChange={handleChange}
-          style={{ padding: 8, borderRadius: 4, border: "1px solid #ccc", background: "white" }}
-        >
-          <option value="lamps">Lamps 💡</option>
-          <option value="thermostats">Thermostats 🌡️</option>
-          <option value="acs">AC Units ❄️</option>
-          <option value="cameras">Cameras 📷</option>
-        </select>
-      )}
-
-      <select
-        name="location"
-        value={form.location}
-        onChange={handleChange}
-        style={{ padding: 8, borderRadius: 4, border: "1px solid #ccc", background: "white" }}
-      >
-        {rooms.map(room => (
-          <option key={room} value={room}>{room}</option>
-        ))}
-        {rooms.length === 0 && <option value="">Loading rooms...</option>}
-      </select>
-
-      <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-        <button 
-          type="submit" 
-          disabled={loading} 
-          style={{ padding: "8px 16px", background: "#0F172A", color: "white", borderRadius: 4, border: "none", cursor: "pointer" }}
-        >
-          {loading ? "Adding..." : "Add Device"}
-        </button>
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
         
-        {onCancel && (
+        {/* Header */}
+        <div className="flex justify-between items-center mb-6">
+          <h2 className="text-xl font-bold text-gray-800 capitalize">
+            {forcedCategory ? `Add New ${forcedCategory.slice(0, -1)}` : "Add New Device"}
+          </h2>
+          {onCancel && (
+            <button onClick={onCancel} className="p-2 hover:bg-gray-100 rounded-full">
+              <X className="w-5 h-5 text-gray-500" />
+            </button>
+          )}
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-4">
+          {/* Device Name */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Device Name</label>
+            <input
+              name="name"
+              required
+              placeholder="e.g. Living Room Lamp"
+              value={form.name}
+              onChange={handleChange}
+              className="w-full p-3 rounded-xl border bg-gray-50 focus:ring-2 focus:ring-teal/50 outline-none transition-all"
+            />
+          </div>
+
+          {/* Category Selector (Hidden if forcedCategory is active) */}
+          {!forcedCategory && (
+            <div>
+              <label className="block text-sm font-medium text-gray-600 mb-1">Category</label>
+              <select
+                name="category"
+                value={form.category}
+                onChange={handleChange}
+                className="w-full p-3 rounded-xl border bg-gray-50 focus:ring-2 focus:ring-teal/50 outline-none transition-all"
+              >
+                <option value="lamps">Lamps 💡</option>
+                <option value="thermostats">Thermostats 🌡️</option>
+                <option value="acs">AC Units ❄️</option>
+                <option value="cameras">Cameras 📷</option>
+              </select>
+            </div>
+          )}
+
+          {/* Location Selector */}
+          <div>
+            <label className="block text-sm font-medium text-gray-600 mb-1">Location</label>
+            <select
+              name="location"
+              value={form.location}
+              onChange={handleChange}
+              className="w-full p-3 rounded-xl border bg-gray-50 focus:ring-2 focus:ring-teal/50 outline-none transition-all"
+            >
+              {rooms.map(room => (
+                <option key={room} value={room}>{room}</option>
+              ))}
+              {rooms.length === 0 && <option value="">Loading rooms...</option>}
+            </select>
+          </div>
+
+          {/* Error Message */}
+          {error && <p className="text-red-500 text-sm text-center font-medium">{error}</p>}
+
+          {/* Submit Button */}
           <button
-            type="button"
-            onClick={onCancel}
-            style={{ padding: "8px 16px", background: "#E2E8F0", color: "black", borderRadius: 4, border: "none", cursor: "pointer" }}
+            type="submit"
+            disabled={loading}
+            className="w-full bg-teal hover:bg-teal/90 text-white font-semibold py-4 rounded-xl shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2 mt-4"
           >
-            Cancel
+            {loading ? "Adding Device..." : "Add Device"}
           </button>
-        )}
+        </form>
       </div>
-      
-      {error && <div style={{ color: "red", fontSize: "0.9rem" }}>{error}</div>}
-    </form>
+    </div>
   );
 };
 

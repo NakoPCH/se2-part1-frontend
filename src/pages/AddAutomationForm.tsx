@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from "react";
-import BASE_URL from "../services/api"; // We can use this if defined, or the string
 import { X, Check } from "lucide-react";
 import { toast } from "sonner";
 
 interface AddAutomationFormProps {
-    initialData?: any; // <--- ADDED THIS (Fixes the error)
+    initialData?: any; 
     onSuccess: () => void;
     onCancel: () => void;
 }
@@ -89,6 +88,7 @@ const AddAutomationForm: React.FC<AddAutomationFormProps> = ({ initialData, onSu
                         <label className="block text-sm font-medium text-gray-600 mb-1">Rule Name</label>
                         <input
                             required
+                            data-testid="rule-name-input" // <--- TEST ID
                             className="w-full p-3 rounded-xl border bg-gray-50 focus:ring-2 focus:ring-teal/50 outline-none"
                             placeholder="e.g. Evening Light Routine"
                             value={name}
@@ -102,6 +102,7 @@ const AddAutomationForm: React.FC<AddAutomationFormProps> = ({ initialData, onSu
                         <input
                             type="time"
                             required
+                            data-testid="rule-time-input" // <--- TEST ID
                             className="w-full p-3 rounded-xl border bg-gray-50 focus:ring-2 focus:ring-teal/50 outline-none"
                             value={time}
                             onChange={(e) => setTime(e.target.value)}
@@ -115,6 +116,7 @@ const AddAutomationForm: React.FC<AddAutomationFormProps> = ({ initialData, onSu
                             {devices.map((dev) => (
                                 <div
                                     key={dev.id}
+                                    data-testid={`device-item-${dev.id}`} // <--- TEST ID (Dynamic)
                                     onClick={() => toggleDevice(dev.id)}
                                     className={`p-3 rounded-lg flex items-center justify-between cursor-pointer border transition-all ${selectedDevices.includes(dev.id)
                                             ? "bg-teal/10 border-teal"
@@ -136,6 +138,7 @@ const AddAutomationForm: React.FC<AddAutomationFormProps> = ({ initialData, onSu
                     <div>
                         <label className="block text-sm font-medium text-gray-600 mb-1">Action</label>
                         <select
+                            data-testid="rule-action-select" // <--- TEST ID
                             className="w-full p-3 rounded-xl border bg-gray-50 focus:ring-2 focus:ring-teal/50 outline-none"
                             value={action}
                             onChange={(e) => setAction(e.target.value)}
@@ -151,6 +154,7 @@ const AddAutomationForm: React.FC<AddAutomationFormProps> = ({ initialData, onSu
                     <button
                         type="submit"
                         disabled={loading}
+                        data-testid="submit-rule-btn" // <--- TEST ID
                         className="w-full bg-teal hover:bg-teal/90 text-white font-semibold py-4 rounded-xl shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2 mt-4"
                     >
                         {/* 4. Dynamic Button Text */}
