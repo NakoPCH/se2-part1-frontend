@@ -7,12 +7,21 @@ import SideMenu from "@/components/SideMenu";
 import AddDeviceForm from "./AddDeviceForm"; 
 import { API_BASE_URL } from "@/config";
 
+// 1. Ορίζουμε το Interface για τη συσκευή ώστε να ξέρει το TypeScript τι δεδομένα περιμένουμε
+interface Device {
+  id: string;
+  name: string;
+  category: string;
+  location: string;
+  status: boolean; // Το χρησιμοποιείς στη γραμμή 155 (device.status ? "On" : "Off")
+}
+
 const AllDevices = () => {
   const navigate = useNavigate();
   const [searchQuery, setSearchQuery] = useState("");
 
-  // State for Data
-  const [allDevices, setAllDevices] = useState<any[]>([]);
+  // 2. Αντικαθιστούμε το <any[]> με <Device[]>
+  const [allDevices, setAllDevices] = useState<Device[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
 
   const fetchDevices = async () => {

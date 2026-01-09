@@ -1,7 +1,60 @@
 import axios from 'axios';
-import { API_BASE_URL } from '@/config'; // <--- 1. Import it here
+import { API_BASE_URL } from '@/config';
 
-// Create axios instance with default config
+// --- 1. DEFINING INTERFACES ---
+
+export interface Device {
+  id: string;
+  name: string;
+  category: string;
+  location: string;
+  status: boolean | string;
+  brightness: number;
+}
+
+// Χρησιμοποιούμε Partial όταν κάνουμε update γιατί μπορεί να στείλουμε μόνο ένα πεδίο
+export type DeviceUpdateData = Partial<Device>;
+
+export interface AutomationData {
+  id?: string;
+  name?: string;
+  time?: string;
+  action?: string;
+  isActive?: boolean;
+  selectedDevices?: string[];
+}
+
+export interface Shortcut {
+  id: string;
+  type: 'device' | 'automation';
+}
+
+// Γενικοί τύποι για τα υπόλοιπα API calls
+export interface RoomData {
+  name: string;
+  type?: string;
+}
+
+export interface ScenarioAction {
+  deviceId: string;
+  action: string;
+  value?: unknown;
+}
+
+export interface NotificationData {
+  title: string;
+  message: string;
+  type?: 'info' | 'warning' | 'error';
+}
+
+export interface WidgetData {
+  type: string;
+  config: Record<string, unknown>;
+}
+
+
+// --- 2. AXIOS CONFIGURATION ---
+
 const api = axios.create({
   baseURL: `${API_BASE_URL}/api`,
   headers: {
@@ -30,7 +83,8 @@ api.interceptors.response.use(
   }
 );
 
-// Authentication API
+// --- 3. API MODULES ---
+
 export const authAPI = {
   async login(username: string, password: string) {
     const response = await api.post('/auth/login', { username, password });
@@ -50,19 +104,21 @@ export const authAPI = {
   },
 };
 
-// Devices API - GET /devices/{deviceId}/status, POST /devices/{deviceId}/action
+// Devices API
 export const devicesAPI = {
   async getDeviceStatus(deviceId: string) {
     const response = await api.get(`/devices/${deviceId}/status`);
     return response.data;
   },
 
-  async controlDevice(deviceId: string, action: any) {
+  // Αντικατάσταση 'action: any' με 'Record<string, unknown>' (γενικό αντικείμενο JSON)
+  async controlDevice(deviceId: string, action: Record<string, unknown>) {
     const response = await api.post(`/devices/${deviceId}/action`, action);
     return response.data;
   },
 
-  async updateDevice(deviceId: string, data: any) {
+  // Αντικατάσταση 'data: any' με 'DeviceUpdateData'
+  async updateDevice(deviceId: string, data: DeviceUpdateData) {
     const response = await api.put(`/devices/${deviceId}`, data);
     return response.data;
   },
@@ -72,13 +128,14 @@ export const devicesAPI = {
     return response.data;
   },
 
-  async addDeviceToRoom(roomId: string, deviceData: any) {
+  // Αντικατάσταση 'deviceData: any' με 'Partial<Device>'
+  async addDeviceToRoom(roomId: string, deviceData: Partial<Device>) {
     const response = await api.post(`/rooms/${roomId}/devices`, deviceData);
     return response.data;
   },
 };
 
-// Rooms API - PUT /rooms/{roomId}/temperature, PUT /rooms/{roomId}/lighting
+// Rooms API
 export const roomsAPI = {
   async setRoomTemperature(roomId: string, temperature: number) {
     const response = await api.put(`/rooms/${roomId}/temperature`, { temperature });
@@ -96,7 +153,7 @@ export const roomsAPI = {
   },
 };
 
-// Houses API - POST /houses, DELETE /houses/{houseId}, POST /houses/{houseId}/rooms
+// Houses API
 export const housesAPI = {
   async createHouse(name: string) {
     const response = await api.post('/houses', { name });
@@ -108,15 +165,17 @@ export const housesAPI = {
     return response.data;
   },
 
-  async addRoomToHouse(houseId: string, roomData: any) {
+  // Αντικατάσταση 'roomData: any' με 'RoomData'
+  async addRoomToHouse(houseId: string, roomData: RoomData) {
     const response = await api.post(`/houses/${houseId}/rooms`, roomData);
     return response.data;
   },
 };
 
-// Scenarios API - POST /scenarios
+// Scenarios API
 export const scenariosAPI = {
-  async createScenario(name: string, actions: any[]) {
+  // Αντικατάσταση 'actions: any[]' με 'ScenarioAction[]'
+  async createScenario(name: string, actions: ScenarioAction[]) {
     const response = await api.post('/scenarios', { name, actions });
     return response.data;
   },
@@ -124,58 +183,59 @@ export const scenariosAPI = {
 
 // Automations API
 export const automationsAPI = {
-  // Get all rules
   async getAutomations() {
     const response = await api.get('/automations');
     return response.data;
   },
 
-  // Create a new rule
-  // We changed arguments to 'data' to match the form structure better
-  async createAutomation(data: any) {
+  // Αντικατάσταση 'data: any' με 'AutomationData'
+  async createAutomation(data: AutomationData) {
     const response = await api.post('/automations', data);
     return response.data;
   },
 
-  // Update an existing rule
-  async updateAutomation(id: string, data: any) {
+  // Αντικατάσταση 'data: any' με 'AutomationData' (ή Partial γιατί μπορεί να είναι update)
+  async updateAutomation(id: string, data: Partial<AutomationData>) {
     const response = await api.put(`/automations/${id}`, data);
     return response.data;
   },
 
-  // Delete a rule
   async deleteAutomation(id: string) {
     const response = await api.delete(`/automations/${id}`);
     return response.data;
   },
 };
 
-// Security API - PUT /security/{deviceId}/state
+// Security API
 export const securityAPI = {
-  async setSecurityState(deviceId: string, state: any) {
+  // Αντικατάσταση 'state: any' με 'Record<string, unknown>'
+  async setSecurityState(deviceId: string, state: Record<string, unknown>) {
     const response = await api.put(`/security/${deviceId}/state`, state);
     return response.data;
   },
 };
 
-// User API - GET /users/{userId}/statistics, POST /users/{userId}/notifications, PUT /users/{userId}/home
+// User API
 export const userAPI = {
   async getStatistics(userId: string) {
     const response = await api.get(`/users/${userId}/statistics`);
     return response.data;
   },
 
-  async sendNotification(userId: string, notification: any) {
+  // Αντικατάσταση 'notification: any' με 'NotificationData'
+  async sendNotification(userId: string, notification: NotificationData) {
     const response = await api.post(`/users/${userId}/notifications`, notification);
     return response.data;
   },
 
-  async customizeHome(userId: string, homeData: any) {
+  // Αντικατάσταση 'homeData: any' με 'Record<string, unknown>'
+  async customizeHome(userId: string, homeData: Record<string, unknown>) {
     const response = await api.put(`/users/${userId}/home`, homeData);
     return response.data;
   },
 
-  async addWidget(userId: string, widgetData: any) {
+  // Αντικατάσταση 'widgetData: any' με 'WidgetData'
+  async addWidget(userId: string, widgetData: WidgetData) {
     const response = await api.post(`/users/${userId}/widgets`, widgetData);
     return response.data;
   },
@@ -188,7 +248,8 @@ export const shortcutsAPI = {
     return response.data;
   },
 
-  async saveShortcuts(shortcuts: any[]) {
+  // Αντικατάσταση 'shortcuts: any[]' με 'Shortcut[]'
+  async saveShortcuts(shortcuts: Shortcut[]) {
     const response = await api.post('/shortcuts', shortcuts);
     return response.data;
   },

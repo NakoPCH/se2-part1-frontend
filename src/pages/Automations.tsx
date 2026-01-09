@@ -7,13 +7,27 @@ import AddAutomationForm from "./AddAutomationForm";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config";
 
+// 1. Ορίζουμε το Interface για το Automation Rule
+// Αυτό πρέπει να περιέχει όλα τα πεδία που χρησιμοποιείς στην οθόνη και στη φόρμα επεξεργασίας.
+export interface Automation {
+    id: string;
+    name: string;
+    time: string;
+    action: string;
+    isActive: boolean;
+    selectedDevices: string[]; // Το χρειάζεται η φόρμα επεξεργασίας (AddAutomationForm)
+}
+
 const Automations = () => {
     const navigate = useNavigate();
-    const [automations, setAutomations] = useState<any[]>([]);
+
+    // 2. Αντικαθιστούμε το <any[]> με <Automation[]>
+    const [automations, setAutomations] = useState<Automation[]>([]);
     const [showAddForm, setShowAddForm] = useState(false);
 
-    // NEW: State to track which rule is being edited
-    const [editingRule, setEditingRule] = useState<any>(null);
+    // 3. Αντικαθιστούμε το <any> με <Automation | null>
+    // Μπορεί να είναι είτε ένα Automation object (όταν κάνουμε edit) είτε null (όταν δεν κάνουμε).
+    const [editingRule, setEditingRule] = useState<Automation | null>(null);
 
     const fetchAutomations = async () => {
         try {
@@ -30,11 +44,10 @@ const Automations = () => {
     }, []);
 
     const toggleAutomation = async (id: string, currentStatus: boolean) => {
-        // 1. Optimistic UI Update (Change the switch visually immediately)
+        // Optimistic UI Update
         setAutomations(prev => prev.map(a => a.id === id ? { ...a, isActive: !currentStatus } : a));
 
         try {
-            // 2. Send PUT request to the specific ID
             await fetch(`${API_BASE_URL}/api/automations/${id}`, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json" },
@@ -42,41 +55,34 @@ const Automations = () => {
             });
         } catch (error) {
             console.error("Failed to toggle rule:", error);
-            // Optional: Revert change if it fails
         }
     };
 
     const deleteAutomation = async (id: string, e: React.MouseEvent) => {
         e.stopPropagation();
 
-        // Keep the confirm dialog for safety, or remove it if you prefer instant delete
         if (!confirm("Delete this rule?")) return;
 
-        // Optimistic Delete (Remove from UI immediately)
+        // Optimistic Delete
         setAutomations(prev => prev.filter(a => a.id !== id));
 
         try {
             await fetch(`${API_BASE_URL}/api/automations/${id}`, { method: "DELETE" });
-
-            // 2. ADD SUCCESS TOAST
             toast.success("Automation rule deleted");
-
         } catch (error) {
-            // 3. ADD ERROR TOAST (and maybe revert the list)
             toast.error("Failed to delete rule");
-            fetchAutomations(); // Refresh list to bring it back if it failed
+            fetchAutomations();
         }
     };
 
-    // NEW: Handle opening the form in "Add" mode
     const handleAddNew = () => {
-        setEditingRule(null); // Clear editing state
+        setEditingRule(null);
         setShowAddForm(true);
     };
 
-    // NEW: Handle opening the form in "Edit" mode
-    const handleEditClick = (rule: any) => {
-        setEditingRule(rule); // Load rule data
+    // 4. Αντικαθιστούμε το (rule: any) με (rule: Automation)
+    const handleEditClick = (rule: Automation) => {
+        setEditingRule(rule);
         setShowAddForm(true);
     };
 
@@ -109,8 +115,8 @@ const Automations = () => {
                     {automations.map((rule) => (
                         <div
                             key={rule.id}
-                            data-testid={`automation-card-${rule.id}`} // <--- TEST ID
-                            onClick={() => handleEditClick(rule)} 
+                            data-testid={`automation-card-${rule.id}`}
+                            onClick={() => handleEditClick(rule)}
                             className="bg-white p-4 rounded-2xl shadow-card flex items-center justify-between cursor-pointer hover:shadow-md transition-shadow"
                         >
                             <div className="flex items-center gap-4">
@@ -131,18 +137,14 @@ const Automations = () => {
                             <div className="flex items-center gap-3">
                                 <Switch
                                     checked={rule.isActive}
-                                    data-testid={`automation-toggle-${rule.id}`} // <--- TEST ID
-                                    // FIX 1: Pass only the ID and Status (no event needed here)
+                                    data-testid={`automation-toggle-${rule.id}`}
                                     onCheckedChange={() => toggleAutomation(rule.id, rule.isActive)}
-
-                                    // FIX 2: Handle the "Don't open edit form" logic here on the click
                                     onClick={(e) => e.stopPropagation()}
-
                                     className="data-[state=checked]:bg-teal"
                                 />
                                 <button
-                                    data-testid={`delete-automation-${rule.id}`} // <--- TEST ID
-                                    onClick={(e) => deleteAutomation(rule.id, e)} // Updated to pass event
+                                    data-testid={`delete-automation-${rule.id}`}
+                                    onClick={(e) => deleteAutomation(rule.id, e)}
                                     className="text-gray-400 hover:text-red-500 p-2"
                                 >
                                     <Trash2 className="w-5 h-5" />
@@ -159,8 +161,8 @@ const Automations = () => {
                 {/* Add Button */}
                 <div className="flex justify-center pt-4">
                     <button
-                        onClick={handleAddNew} 
-                        data-testid="add-automation-btn" // <--- TEST ID
+                        onClick={handleAddNew}
+                        data-testid="add-automation-btn"
                         className="bg-white hover:bg-gray-50 text-gray-800 font-semibold px-6 py-4 rounded-2xl shadow-card flex items-center gap-2 transition-all"
                     >
                         <Plus className="w-5 h-5" />
@@ -172,7 +174,10 @@ const Automations = () => {
             {/* Modal */}
             {showAddForm && (
                 <AddAutomationForm
-                    initialData={editingRule} 
+                    // Εδώ το TypeScript μπορεί να παραπονεθεί αν τα interfaces δεν είναι απολύτως ίδια.
+                    // Αν σου βγάλει κόκκινο εδώ, βεβαιώσου ότι το Interface στο AddAutomationForm.tsx
+                    // είναι συμβατό με το Interface Automation που φτιάξαμε εδώ.
+                    initialData={editingRule || undefined} // Το || undefined χρειάζεται αν το editingRule είναι null
                     onSuccess={() => { setShowAddForm(false); fetchAutomations(); }}
                     onCancel={() => setShowAddForm(false)}
                 />
@@ -186,7 +191,7 @@ const Automations = () => {
                         <span className="text-xs">Homepage</span>
                     </button>
                     <button onClick={() => navigate("/devices")} className="flex flex-col items-center gap-1 opacity-70">
-                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" /></svg>
+                        <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24"><path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" /></svg>
                         <span className="text-xs">All devices</span>
                     </button>
                 </div>

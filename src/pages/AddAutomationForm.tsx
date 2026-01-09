@@ -3,20 +3,41 @@ import { X, Check } from "lucide-react";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config";
 
+// 1. Interface για τη συσκευή (Device)
+interface Device {
+    id: string;
+    name: string;
+    category: string;
+}
+
+// 2. Interface για τα δεδομένα του Automation
+// ΔΙΟΡΘΩΣΗ: Βάζουμε ερωτηματικό (?) στο selectedDevices για να ταιριάζει με το Home.tsx
+export interface AutomationData {
+    id?: string; // Προαιρετικό γιατί όταν φτιάχνουμε νέο rule δεν έχει ακόμα ID
+    name: string;
+    time: string;
+    action: string;
+    selectedDevices?: string[]; // <--- ΕΔΩ ΗΤΑΝ ΤΟ ΠΡΟΒΛΗΜΑ, ΤΩΡΑ ΕΙΝΑΙ OPTIONAL
+}
+
 interface AddAutomationFormProps {
-    initialData?: any; 
+    initialData?: AutomationData; 
     onSuccess: () => void;
     onCancel: () => void;
 }
 
 const AddAutomationForm: React.FC<AddAutomationFormProps> = ({ initialData, onSuccess, onCancel }) => {
-    // 1. Initialize state with initialData if it exists (Edit Mode), otherwise defaults (Add Mode)
+    
+    // Αρχικοποίηση των state. Αν δεν υπάρχει initialData, βάζουμε default τιμές.
     const [name, setName] = useState(initialData?.name || "");
     const [time, setTime] = useState(initialData?.time || "07:00");
     const [action, setAction] = useState(initialData?.action || "turn_on");
+    
+    // Εδώ χρησιμοποιούμε το || [] ώστε αν το selectedDevices είναι undefined να γίνει κενός πίνακας
     const [selectedDevices, setSelectedDevices] = useState<string[]>(initialData?.selectedDevices || []);
 
-    const [devices, setDevices] = useState<any[]>([]);
+    const [devices, setDevices] = useState<Device[]>([]); 
+    
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState("");
 
@@ -41,11 +62,11 @@ const AddAutomationForm: React.FC<AddAutomationFormProps> = ({ initialData, onSu
         setLoading(true);
 
         try {
-            const url = initialData
+            const url = initialData?.id
                 ? `${API_BASE_URL}/api/automations/${initialData.id}`
                 : `${API_BASE_URL}/api/automations`;
 
-            const method = initialData ? "PUT" : "POST";
+            const method = initialData?.id ? "PUT" : "POST";
 
             const res = await fetch(url, {
                 method: method,
@@ -55,12 +76,10 @@ const AddAutomationForm: React.FC<AddAutomationFormProps> = ({ initialData, onSu
 
             if (!res.ok) throw new Error("Failed to save");
 
-            // 2. ADD SUCCESS TOAST HERE
             toast.success(initialData ? "Rule updated successfully" : "New rule created");
 
             onSuccess();
         } catch (err) {
-            // 3. ADD ERROR TOAST HERE
             toast.error("Failed to save automation");
             setError("Error saving rule");
         } finally {
@@ -74,7 +93,6 @@ const AddAutomationForm: React.FC<AddAutomationFormProps> = ({ initialData, onSu
 
                 {/* Header */}
                 <div className="flex justify-between items-center mb-6">
-                    {/* 3. Dynamic Title */}
                     <h2 className="text-xl font-bold text-gray-800">
                         {initialData ? "Edit Automation" : "Add New Automation"}
                     </h2>
@@ -89,7 +107,7 @@ const AddAutomationForm: React.FC<AddAutomationFormProps> = ({ initialData, onSu
                         <label className="block text-sm font-medium text-gray-600 mb-1">Rule Name</label>
                         <input
                             required
-                            data-testid="rule-name-input" // <--- TEST ID
+                            data-testid="rule-name-input"
                             className="w-full p-3 rounded-xl border bg-gray-50 focus:ring-2 focus:ring-teal/50 outline-none"
                             placeholder="e.g. Evening Light Routine"
                             value={name}
@@ -103,7 +121,7 @@ const AddAutomationForm: React.FC<AddAutomationFormProps> = ({ initialData, onSu
                         <input
                             type="time"
                             required
-                            data-testid="rule-time-input" // <--- TEST ID
+                            data-testid="rule-time-input"
                             className="w-full p-3 rounded-xl border bg-gray-50 focus:ring-2 focus:ring-teal/50 outline-none"
                             value={time}
                             onChange={(e) => setTime(e.target.value)}
@@ -117,12 +135,12 @@ const AddAutomationForm: React.FC<AddAutomationFormProps> = ({ initialData, onSu
                             {devices.map((dev) => (
                                 <div
                                     key={dev.id}
-                                    data-testid={`device-item-${dev.id}`} // <--- TEST ID (Dynamic)
+                                    data-testid={`device-item-${dev.id}`}
                                     onClick={() => toggleDevice(dev.id)}
                                     className={`p-3 rounded-lg flex items-center justify-between cursor-pointer border transition-all ${selectedDevices.includes(dev.id)
                                             ? "bg-teal/10 border-teal"
                                             : "bg-white border-transparent hover:border-gray-300"
-                                        }`}
+                                    }`}
                                 >
                                     <div className="flex items-center gap-3">
                                         <span className="text-xl">{dev.category === 'lamps' ? '💡' : '📱'}</span>
@@ -139,7 +157,7 @@ const AddAutomationForm: React.FC<AddAutomationFormProps> = ({ initialData, onSu
                     <div>
                         <label className="block text-sm font-medium text-gray-600 mb-1">Action</label>
                         <select
-                            data-testid="rule-action-select" // <--- TEST ID
+                            data-testid="rule-action-select"
                             className="w-full p-3 rounded-xl border bg-gray-50 focus:ring-2 focus:ring-teal/50 outline-none"
                             value={action}
                             onChange={(e) => setAction(e.target.value)}
@@ -155,10 +173,9 @@ const AddAutomationForm: React.FC<AddAutomationFormProps> = ({ initialData, onSu
                     <button
                         type="submit"
                         disabled={loading}
-                        data-testid="submit-rule-btn" // <--- TEST ID
+                        data-testid="submit-rule-btn"
                         className="w-full bg-teal hover:bg-teal/90 text-white font-semibold py-4 rounded-xl shadow-lg transition-transform active:scale-95 flex justify-center items-center gap-2 mt-4"
                     >
-                        {/* 4. Dynamic Button Text */}
                         {loading ? "Saving..." : (initialData ? "Save Changes" : "Add Automation")}
                     </button>
                 </form>
