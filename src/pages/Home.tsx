@@ -9,24 +9,53 @@ import AddAutomationForm from "./AddAutomationForm";
 import { shortcutsAPI, automationsAPI } from "../services/api";
 import { API_BASE_URL } from "@/config";
 
+// --- 1. INTERFACES ---
+
+interface Device {
+  id: string;
+  name: string;
+  // Το status φαίνεται να είναι boolean ή string ("active") στον κώδικά σου
+  status: boolean | string; 
+  brightness: number;
+  location: string;
+  category: string;
+}
+
+interface Automation {
+  id: string;
+  name: string;
+  time: string;
+  action: string;
+  isActive: boolean;
+  selectedDevices?: string[];
+}
+
+interface Shortcut {
+  id: string;
+  type: 'device' | 'automation';
+}
+
 const Home = () => {
   const navigate = useNavigate();
 
-  // Data State
-  const [lights, setLights] = useState<any[]>([]);
-  const [automations, setAutomations] = useState<any[]>([]);
-  const [shortcuts, setShortcuts] = useState<any[]>([]);
+  // Data State - Τώρα με σωστούς τύπους
+  const [lights, setLights] = useState<Device[]>([]);
+  const [automations, setAutomations] = useState<Automation[]>([]);
+  const [shortcuts, setShortcuts] = useState<Shortcut[]>([]);
 
   // Live Clock Logic
   const [currentTime, setCurrentTime] = useState(new Date());
 
-  // NEW: Weather & User State
+  // Weather & User State
   const [username, setUsername] = useState("User");
   const [weather, setWeather] = useState<{ temp: number, code: number } | null>(null);
 
   // UI State
   const [isEditingShortcuts, setIsEditingShortcuts] = useState(false);
-  const [editingAutomation, setEditingAutomation] = useState<any>(null);
+  
+  // Το editingAutomation μπορεί να είναι Automation ή null
+  const [editingAutomation, setEditingAutomation] = useState<Automation | null>(null);
+  
   const [showAutoForm, setShowAutoForm] = useState(false);
   const [loadingSave, setLoadingSave] = useState(false);
 
@@ -51,14 +80,13 @@ const Home = () => {
     }
   };
 
-  // NEW: Fetch Weather & Username
+  // Fetch Weather & Username
   useEffect(() => {
     // 1. Get Username
     const storedName = localStorage.getItem("username");
     if (storedName) setUsername(storedName);
 
-    // 2. Fetch Weather (Thessaloniki Coordinates)
-    // You can change latitude/longitude to any city
+    // 2. Fetch Weather
     fetch("https://api.open-meteo.com/v1/forecast?latitude=40.64&longitude=22.94&current_weather=true")
       .then(res => res.json())
       .then(data => {
@@ -75,11 +103,13 @@ const Home = () => {
   // Clock Timer
   useEffect(() => {
     const timer = setInterval(() => setCurrentTime(new Date()), 1000);
-    return () => clearInterval(timer); // Cleanup on unmount
+    return () => clearInterval(timer);
   }, []);
 
   // --- ACTIONS: LIGHTS ---
-  const updateLight = async (id: string, updates: any) => {
+  // Χρησιμοποιούμε Partial<Device> γιατί μπορεί να στείλουμε μόνο το status ή μόνο το brightness
+  const updateLight = async (id: string, updates: Partial<Device>) => {
+    // Εδώ χρειάζεται προσοχή στο spread operator για να μην χαλάσει το typing
     setLights(prev => prev.map(l => l.id === id ? { ...l, ...updates } : l));
     try {
       await fetch(`${API_BASE_URL}/api/lighting/devices/${id}`, {
@@ -95,7 +125,6 @@ const Home = () => {
 
   // Master Off Logic for all lights
   const handleMasterOff = async () => {
-    // 1. Filter only the lights that are currently ON
     const activeLights = lights.filter(l => l.status === true || l.status === "active");
 
     if (activeLights.length === 0) {
@@ -103,13 +132,10 @@ const Home = () => {
       return;
     }
 
-    // 2. Optimistic Update (Turn them off visually instantly)
     setLights(prev => prev.map(l => ({ ...l, status: false })));
     toast.success(`Turning off ${activeLights.length} lights...`);
 
-    // 3. Send requests to backend for each light
     try {
-      // We use Promise.all to send all requests in parallel
       await Promise.all(
         activeLights.map(light =>
           fetch(`${API_BASE_URL}/api/lighting/devices/${light.id}`, {
@@ -122,7 +148,7 @@ const Home = () => {
     } catch (error) {
       console.error("Master off failed", error);
       toast.error("Some lights might not have turned off");
-      fetchAllData(); // Re-fetch to ensure state is correct
+      fetchAllData();
     }
   };
 
@@ -138,13 +164,15 @@ const Home = () => {
     }
   };
 
-  const handleEditAutomation = (rule: any) => {
+  // Διορθωμένο: Το rule είναι τύπου Automation
+  const handleEditAutomation = (rule: Automation) => {
     setEditingAutomation(rule);
     setShowAutoForm(true);
   };
 
   // --- ACTIONS: SHORTCUTS ---
-  const toggleShortcutSelection = (item: any, type: 'device' | 'automation') => {
+  // Διορθωμένο: Το item μπορεί να είναι Device ή Automation
+  const toggleShortcutSelection = (item: Device | Automation, type: 'device' | 'automation') => {
     setShortcuts(prev => {
       const exists = prev.find(s => s.id === item.id);
       if (exists) {
@@ -181,25 +209,20 @@ const Home = () => {
     return new Date().toLocaleDateString('en-US', { weekday: 'long', day: 'numeric', month: 'long' });
   };
 
-  // Helper to format time (e.g., "23:05")
   const formatTime = (date: Date) => {
     return date.toLocaleTimeString('en-US', {
       hour: '2-digit',
       minute: '2-digit',
-      hour12: false // Change to true if you want AM/PM
+      hour12: false
     });
   };
 
-
-
-  // Calculations for Chips
   const activeLightsCount = lights.filter(l => l.status === true || l.status === "active").length;
   const activeRulesCount = automations.filter(a => a.isActive).length;
 
-
   // --- RENDER HELPERS ---
-  // Render a Light Card 
-  const renderLightCard = (light: any) => (
+  // Διορθωμένο: Το light είναι Device
+  const renderLightCard = (light: Device) => (
     <div key={light.id} className="bg-white rounded-2xl p-4 shadow-card flex flex-col gap-4 transition-smooth hover:shadow-elevated">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-4">
@@ -215,7 +238,6 @@ const Home = () => {
           <div>
             <h3 className="font-semibold text-foreground">{light.name}</h3>
             <p className="text-sm text-muted-foreground">
-              {/* NEW: Added Location Label here */}
               <span className="font-medium text-teal">{light.location} • </span>
               {light.status ? `Brightness: ${light.brightness}%` : "Off"}
             </p>
@@ -249,7 +271,8 @@ const Home = () => {
     </div>
   );
 
-  const renderAutoCard = (rule: any) => (
+  // Διορθωμένο: Το rule είναι Automation
+  const renderAutoCard = (rule: Automation) => (
     <div
       key={rule.id}
       onClick={() => handleEditAutomation(rule)}
@@ -284,7 +307,6 @@ const Home = () => {
       {/* Header */}
       <header className="gradient-header text-white p-4 flex items-center justify-between shadow-elevated">
         <SideMenu onNavigate={navigate}>
-          {/* UPDATED: Added data-testid here */}
           <button className="p-2" data-testid="menu-trigger">
              <Menu className="w-6 h-6" />
           </button>
@@ -307,7 +329,7 @@ const Home = () => {
           {/* UPDATED DATE & TIME ROW */}
           <p className="text-muted-foreground font-medium text-sm mt-1 flex items-center gap-2">
             {getDate()}
-            <span className="w-1 h-1 rounded-full bg-gray-300" /> {/* Little dot separator */}
+            <span className="w-1 h-1 rounded-full bg-gray-300" />
             <span className="text-teal font-bold tracking-wide font-mono text-base">
               {formatTime(currentTime)}
             </span>
@@ -316,7 +338,7 @@ const Home = () => {
 
         {/* 2. STATUS CHIPS ROW */}
         <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
-          {/* Chip 1: Lights (With Master Off) */}
+          {/* Chip 1: Lights */}
           <div className="bg-white px-4 py-3 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 min-w-fit transition-all hover:shadow-md">
             <div className={`w-8 h-8 rounded-full flex items-center justify-center ${activeLightsCount > 0 ? 'bg-orange-100 text-orange-500' : 'bg-gray-100 text-gray-400'}`}>
               <Lightbulb className="w-4 h-4" />
@@ -326,7 +348,6 @@ const Home = () => {
               <p className="text-sm font-bold text-gray-800">{activeLightsCount} On</p>
             </div>
 
-            {/* NEW: The Panic Button (Only shows if lights are ON) */}
             {activeLightsCount > 0 && (
               <button
                 onClick={handleMasterOff}
@@ -349,7 +370,7 @@ const Home = () => {
             </div>
           </div>
 
-          {/* Chip 3: REAL WEATHER (New!) */}
+          {/* Chip 3: REAL WEATHER */}
           <div className="bg-white px-4 py-3 rounded-2xl shadow-sm border border-gray-100 flex items-center gap-3 min-w-fit">
             <div className="w-8 h-8 rounded-full bg-teal/10 text-teal flex items-center justify-center">
               {weather ? (weather.code > 3 ? <CloudRain className="w-4 h-4" /> : <Sun className="w-4 h-4" />) : <Wind className="w-4 h-4 animate-pulse" />}
@@ -484,7 +505,7 @@ const Home = () => {
 
       {showAutoForm && (
         <AddAutomationForm
-          initialData={editingAutomation}
+          initialData={editingAutomation || undefined} // Fix for potential null
           onSuccess={() => { setShowAutoForm(false); fetchAllData(); }}
           onCancel={() => setShowAutoForm(false)}
         />
