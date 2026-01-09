@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from "react";
-import { Menu, User, Search, Sun, Trash2, Plus } from "lucide-react"; 
-import { Button } from "@/components/ui/button"; 
-import { toast } from "sonner"; 
+import { Menu, User, Search, Sun, Trash2, Plus } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 import { Switch } from "@/components/ui/switch";
 import { Input } from "@/components/ui/input";
-import { useNavigate, useLocation } from "react-router-dom"; 
+import { useNavigate, useLocation } from "react-router-dom";
 import SideMenu from "@/components/SideMenu";
 import {
   Select,
@@ -13,19 +13,31 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import AddDeviceForm from "./AddDeviceForm"; 
+import AddDeviceForm from "./AddDeviceForm";
 import { API_BASE_URL } from "@/config";
+
+// 1. Ορίζουμε το Interface για τη συσκευή (Device)
+interface Device {
+  id: string;
+  name: string;
+  category: string;
+  location: string;
+  status: boolean | string; // Μπορεί να είναι boolean ή "active"
+  brightness: number;
+}
 
 const Lighting = () => {
   const navigate = useNavigate();
   const locationState = useLocation();
   
-  // CHANGED: Default to "All Rooms"
+  // Default to "All Rooms"
   const [selectedRoom, setSelectedRoom] = useState("All Rooms");
   
   const [availableRooms, setAvailableRooms] = useState<string[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [lights, setLights] = useState<any[]>([]);
+
+  // 2. Αντικαθιστούμε το <any[]> με <Device[]>
+  const [lights, setLights] = useState<Device[]>([]);
   const [showAddForm, setShowAddForm] = useState(false);
 
   // 1. Fetch Rooms
@@ -41,7 +53,7 @@ const Lighting = () => {
         if (incomingRoom && data.includes(incomingRoom)) {
           setSelectedRoom(incomingRoom);
         } else {
-          // CHANGED: Default to "All Rooms" if no specific room requested
+          // Default to "All Rooms" if no specific room requested
           setSelectedRoom("All Rooms");
         }
       })
@@ -66,7 +78,8 @@ const Lighting = () => {
   }, []);
 
   // 3. Update Device
-  const updateDeviceState = async (deviceId: string, updates: any) => {
+  // Χρησιμοποιούμε Partial<Device> γιατί μπορεί να στείλουμε μόνο status ή μόνο brightness
+  const updateDeviceState = async (deviceId: string, updates: Partial<Device>) => {
     setLights((prev) =>
       prev.map((l) => (l.id === deviceId ? { ...l, ...updates } : l))
     );
@@ -114,7 +127,6 @@ const Lighting = () => {
     <div className="min-h-screen bg-gradient-to-b from-muted/30 to-background pb-20">
       <header className="gradient-header text-white p-4 flex items-center justify-between shadow-elevated">
         <SideMenu onNavigate={navigate}>
-          {/* UPDATED: Added data-testid here for consistency */}
           <button className="p-2" data-testid="menu-trigger">
             <Menu className="w-6 h-6" />
           </button>
@@ -144,7 +156,7 @@ const Lighting = () => {
               <SelectValue placeholder="Select room" />
             </SelectTrigger>
             <SelectContent>
-              {/* NEW: All Rooms Option */}
+              {/* All Rooms Option */}
               <SelectItem value="All Rooms">All Rooms</SelectItem>
               {availableRooms.map((room) => (
                 <SelectItem key={room} value={room}>{room}</SelectItem>
@@ -159,7 +171,7 @@ const Lighting = () => {
             .filter(
               (light) =>
                 light.category === "lamps" &&
-                // NEW LOGIC: If "All Rooms" is selected, ignore location check
+                // LOGIC: If "All Rooms" is selected, ignore location check
                 (selectedRoom === "All Rooms" || light.location === selectedRoom) && 
                 light.name.toLowerCase().includes(searchQuery.toLowerCase())
             )
@@ -282,7 +294,7 @@ const Lighting = () => {
             className="flex flex-col items-center gap-1 transition-smooth hover:scale-105"
           >
             <svg className="w-6 h-6" fill="currentColor" viewBox="0 0 24 24">
-              <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
+              <path d="M3 13h2v-2H3v2zm0 4h2v-2H3v2zm0-8h2V7H3v2zm4 4h14v-2H7v2zm0 4h14v-2H7v2zm0 4h14v-2H7v2zm0 4h14v-2H7v2zm0 4h14v-2H7v2zM7 7v2h14V7H7z" />
             </svg>
             <span className="text-xs font-medium">All devices</span>
           </button>

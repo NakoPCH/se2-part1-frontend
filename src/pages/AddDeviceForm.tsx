@@ -1,26 +1,37 @@
 import React, { useState, useEffect } from "react";
-import { X } from "lucide-react"; 
+import { X } from "lucide-react";
 import { API_BASE_URL } from "@/config";
 
+// 1. Ορίζουμε το Interface για τη συσκευή (Device)
+// Περιλαμβάνει τα πεδία που στέλνεις (name, category, location) και το id που συνήθως επιστρέφει η βάση.
+export interface Device {
+  id: string;
+  name: string;
+  category: string;
+  location: string;
+  // Μπορείς να προσθέσεις κι άλλα πεδία αν επιστρέφει κι άλλα το backend (π.χ. isOn, status)
+}
+
 interface AddDeviceFormProps {
-  onDeviceAdded?: (device: any) => void;
+  // 2. Αντικαθιστούμε το 'any' με το 'Device'
+  onDeviceAdded?: (device: Device) => void;
   onCancel?: () => void;
   forcedCategory?: string;
   defaultRoom?: string;
 }
 
-const AddDeviceForm: React.FC<AddDeviceFormProps> = ({ 
-  onDeviceAdded, 
-  onCancel, 
+const AddDeviceForm: React.FC<AddDeviceFormProps> = ({
+  onDeviceAdded,
+  onCancel,
   forcedCategory,
-  defaultRoom 
+  defaultRoom
 }) => {
-  const [form, setForm] = useState({ 
-    name: "", 
-    category: forcedCategory || "lamps", 
-    location: "" 
+  const [form, setForm] = useState({
+    name: "",
+    category: forcedCategory || "lamps",
+    location: ""
   });
-  
+
   const [rooms, setRooms] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -52,17 +63,20 @@ const AddDeviceForm: React.FC<AddDeviceFormProps> = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(form),
       });
-      const data = await res.json();
       
+      const data = await res.json();
+
       if (!res.ok) {
         setError(data.error || "Error adding device");
       } else {
         // Reset form
-        setForm({ 
-          name: "", 
-          category: forcedCategory || "lamps", 
+        setForm({
+          name: "",
+          category: forcedCategory || "lamps",
           location: defaultRoom || (rooms.length > 0 ? rooms[0] : "")
         });
+        
+        // Εδώ καλούμε το callback με τα δεδομένα που πλέον ξέρουμε ότι είναι τύπου Device
         if (onDeviceAdded) onDeviceAdded(data);
       }
     } catch {
@@ -74,7 +88,7 @@ const AddDeviceForm: React.FC<AddDeviceFormProps> = ({
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <div className="bg-white rounded-3xl w-full max-w-md p-6 shadow-2xl animate-in fade-in zoom-in-95 duration-200">
-        
+
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-bold text-gray-800 capitalize">
