@@ -16,3 +16,4 @@
 - https://homiease-frontend.onrender.com/
 - Backend is also configured on render.com and communicates properly with the frontend
 - Render auto-deploys only after CI Checks Pass
+- The backend spins down after 15 minutes of inactivity, so the initial login may take up to 50 seconds while the server wakes up.
